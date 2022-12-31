@@ -12,11 +12,12 @@ import ModalPending from "../ModalPending/ModalPending";
 import { ethers } from "ethers";
 const NftCard = (props) => {
   const { title, tokenId, price, image, owner, seller, load } = props.item;
-  const { connectingWithSmartContract, } = useContext(NFTContext)
+  const { connectingWithSmartContract, currentAccount } = useContext(NFTContext)
   const [showModal, setShowModal] = useState(false);
-  const { sale,click } = props
+  const { sale, click } = props
   const [loaded, setLoaded] = useState(load ? load : false)
   const [sell, setSell] = useState(0)
+  const myNFT = currentAccount === seller?.toLowerCase();
 
   // const amount = ethers.utils.parseUnits(price, "ether")
 
@@ -64,15 +65,16 @@ const NftCard = (props) => {
 
   return (
     <div className="single__nft__card">
-      
-      <div className="nft__img">
-        {!loaded && <Skeleton sx={{ bgcolor: '#ffffffaf' }} variant="rounded" style={{ width: '100%', height: 221 }} />}
-        <img src={image} alt="" className="w-100" onLoad={() => setLoaded(true)} style={!loaded ? { display: "none" } : {}} />
-      </div>
-
+      <Link to={`/market/${tokenId}`}>
+        <div className="nft__img">
+          {!loaded && <Skeleton sx={{ bgcolor: '#ffffffaf' }} variant="rounded" style={{ width: '100%', height: 221 }} />}
+          <img src={image} alt="" className="w-100" onLoad={() => setLoaded(true)} style={!loaded ? { display: "none" } : {}} />
+        </div>
+      </Link>
       <div className="nft__content">
+
         <h5 className="nft__title">
-          <Link to={`/market/${tokenId}`}>{!loaded ? <Skeleton sx={{ bgcolor: '#ffffffaf' }} variant="rounded" style={{ width: '50%' }} /> : title}</Link>
+          <Link to={`/market/${tokenId}`}> {!loaded ? <Skeleton sx={{ bgcolor: '#ffffffaf' }} variant="rounded" style={{ width: '50%' }} /> : title} </Link>
         </h5>
 
         <div className="creator__info-wrapper d-flex gap-3">
@@ -96,20 +98,23 @@ const NftCard = (props) => {
 
         <div className=" mt-3 d-flex align-items-center justify-content-between">
           <button
-            className="bid__btn d-flex align-items-center gap-1"
-            onClick={()=>click(props.item)}
+            className={`bid__btn d-flex align-items-center gap-1 ${myNFT && "my-nft"}`}
+            onClick={() => {
+              if (!myNFT) {
+                click(props.item)
+              }
+            }}
           >
-            <i className="ri-shopping-bag-line"></i> {sale ? "Sell" : "Place Bid"}
+            <i className="ri-shopping-bag-line"></i> {myNFT ? "Your NFT" : (sale ? "Sell" : "Place Bid")}
           </button>
-
-          {/* {showModal && <Modal setShowModal={setShowModal} />} */}
 
           <span className="history__link">
             <Link to="#">View History</Link>
           </span>
         </div>
       </div>
-    </div>
+
+    </div >
   );
 };
 

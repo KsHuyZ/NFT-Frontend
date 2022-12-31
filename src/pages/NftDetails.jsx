@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 
 import CommonSection from "../components/ui/Common-section/CommonSection";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Container, Row, Col } from "reactstrap";
 import { NFT__DATA } from "../assets/data/data";
 
@@ -23,8 +23,8 @@ const NftDetails = () => {
   const [showModal, setShowModal] = useState(false)
   const [sell, setSell] = useState(0)
   const { id } = useParams();
-
-  const { connectingWithSmartContract } = useContext(NFTContext)
+  const navigate = useNavigate()
+  const { connectingWithSmartContract, balanceOf } = useContext(NFTContext)
 
   const handleGetNFTDetail = async () => {
     const contract = await connectingWithSmartContract()
@@ -58,6 +58,7 @@ const NftDetails = () => {
       setShowModal(true)
       const transaction = await contract.createMarketSale(nft.tokenId, { value: ethers.utils.parseUnits(nft.price, "ether") })
       await transaction.wait()
+      balanceOf()
       setSell(1)
     } catch (error) {
       console.log(error);
@@ -126,20 +127,30 @@ const NftDetails = () => {
                     </span>
                   </div>
                 </div>
+                <div className="price-seller d-flex " style={{}}>
+                  <div className="nft__creator d-flex gap-3 align-items-center">
+                    <div className="creator__img">
+                      {nft ? (<Identicon width={40} address={nft?.seller} />) : (<Skeleton variant="circular" sx={{ bgcolor: '#ffffffaf' }} width={40} height={40} />)}
+                    </div>
 
-                <div className="nft__creator d-flex gap-3 align-items-center">
-                  <div className="creator__img">
-                    {nft ? (<Identicon width={40} address={nft?.seller} />) : (<Skeleton variant="circular" sx={{ bgcolor: '#ffffffaf' }} width={40} height={40} />)}
+                    <div className="creator__detail">
+                      <p>Created By</p>
+                      {nft ? (<h6>{`${nft?.seller.substring(0, 4)}...${nft?.seller.substring(nft?.seller.length - 4)}`}</h6>) : (<Skeleton sx={{ bgcolor: '#ffffffaf' }} variant="rounded" style={{ width: '100%' }} />)}
+
+                    </div>
                   </div>
 
-                  <div className="creator__detail">
-                    <p>Created By</p>
-                    {nft ? (<h6>{`${nft?.seller.substring(0, 4)}...${nft?.seller.substring(nft?.seller.length - 4)}`}</h6>) : (<Skeleton sx={{ bgcolor: '#ffffffaf' }} variant="rounded" style={{ width: '100%' }} />)}
-
+                  <div className="nft__creator d-flex gap-3 align-items-center" style={{ marginLeft: "5em" }}>
+                    <div className="creator__detail d-flex align-items-center" style={{ justifyContent: 'space-between', width: '10em' }}>
+                      <p>Current Bid</p>
+                      {nft ? (<h6>{nft.price} ETH</h6>) : (<Skeleton sx={{ bgcolor: '#ffffffaf' }} variant="rounded" style={{ width: '100%' }} />)}
+                    </div>
                   </div>
                 </div>
 
+
                 <p className="my-4">{nft?.description}</p>
+
                 <button className="singleNft-btn d-flex align-items-center gap-2 w-100" onClick={nft?.owner === NFTMarketPlaceAddress ? handleBuyNFT : handleSellNFT}>
                   <i className="ri-shopping-bag-line"></i>
                   <Link to="#" >{nft?.owner === NFTMarketPlaceAddress ? "Place a Bid" : "Resell"}</Link>
